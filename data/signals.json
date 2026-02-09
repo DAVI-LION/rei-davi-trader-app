@@ -1,0 +1,18 @@
+{
+  "status": "operacional",
+  "ultimaAtualizacao": "2026-02-09 13:45",
+  "sinais": [
+    {
+      "ativo": "WIN",
+      "direcao": "COMPRA",
+      "preco": 164320,
+      "horario": "13:42"
+    },
+    {
+      "ativo": "WIN",
+      "direcao": "VENDA",
+      "preco": 164180,
+      "horario": "13:18"
+    }
+  ]
+}
