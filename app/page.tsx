@@ -1,52 +1,68 @@
-import fs from "fs";
-import path from "path";
+"use client";
 
-type Sinal = {
+import { useEffect, useState } from "react";
+
+interface Signal {
   ativo: string;
   direcao: string;
   preco: number;
   horario: string;
-};
+}
 
-type DadosSistema = {
-  status: string;
+interface SignalsData {
   ultimaAtualizacao: string;
-  sinais: Sinal[];
-};
+  sinais: Signal[];
+}
 
 export default function Home() {
-  const filePath = path.join(process.cwd(), "data", "signals.json");
-  const jsonData = fs.readFileSync(filePath, "utf-8");
-  const dados: DadosSistema = JSON.parse(jsonData);
+  const [data, setData] = useState<SignalsData | null>(null);
+
+  async function carregarSinais() {
+    try {
+      const response = await fetch("/api/signals");
+      const json = await response.json();
+      setData(json);
+    } catch (error) {
+      console.error("Erro ao carregar sinais:", error);
+    }
+  }
+
+  useEffect(() => {
+    carregarSinais();
+
+    const intervalo = setInterval(() => {
+      carregarSinais();
+    }, 5000);
+
+    return () => clearInterval(intervalo);
+  }, []);
 
   return (
-    <main style={{ padding: "24px", fontFamily: "Arial, sans-serif" }}>
-      <h1>REI DAVI TRADER</h1>
+    <div className="min-h-screen bg-black text-white p-10 font-mono">
+      <h1 className="text-2xl mb-4">REI DAVI TRADER</h1>
+      <p>Status do sistema: <strong>operacional</strong></p>
 
-      <p>
-        <strong>Status do sistema:</strong>{" "}
-        <span style={{ color: "green" }}>{dados.status}</span>
-      </p>
+      {data && (
+        <>
+          <p className="mt-4">
+            Última atualização: {data.ultimaAtualizacao}
+          </p>
 
-      <p>
-        <strong>Última atualização:</strong> {dados.ultimaAtualizacao}
-      </p>
+          <h2 className="mt-6 text-xl">Sinais Ativos</h2>
 
-      <hr />
-
-      <h2>Sinais Ativos</h2>
-
-      {dados.sinais.length === 0 && <p>Nenhum sinal disponível.</p>}
-
-      <ul>
-        {dados.sinais.map((sinal, index) => (
-          <li key={index} style={{ marginBottom: "12px" }}>
-            <strong>{sinal.ativo}</strong> — {sinal.direcao} <br />
-            Preço: {sinal.preco} <br />
-            Horário: {sinal.horario}
-          </li>
-        ))}
-      </ul>
-    </main>
+          <div className="mt-4 space-y-4">
+            {data.sinais.map((sinal, index) => (
+              <div key={index} className="border border-zinc-700 p-4 rounded">
+                <p>
+                  {sinal.ativo} — {sinal.direcao}
+                </p>
+                <p>Preço: {sinal.preco}</p>
+                <p>Horário: {sinal.horario}</p>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
